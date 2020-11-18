@@ -19,3 +19,10 @@ Execute the following to build the custom menuconfig:
 	host$ ./build_kernel.sh
 
 For the latest bb-kernel: 5.18.8-bone23
+
+### IMPORTANT - WARNING: While building the kernel CONFIG_MIKROBUS option MUST be NOT set!
+
+	host$ cat .config | grep MIKROBUS
+	# CONFIG_MIKROBUS is not set
+
+In order to be able to test Mikrobus Driver out-of-kernel-tree .

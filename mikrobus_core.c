@@ -121,7 +121,6 @@ static DEVICE_ATTR_RO(name);
 static ssize_t new_device_store(struct device *dev, struct device_attribute *attr,
 					 const char *buf, size_t count)
 {
-<<<<<<< HEAD
 	struct mikrobus_port *port = to_mikrobus_port(dev);
 	struct addon_board_info *board;
 	int retval;
@@ -152,41 +151,6 @@ static ssize_t new_device_store(struct device *dev, struct device_attribute *att
 err_free_board:
 	kfree(board);
 	return retval;
-=======
-    struct mikrobus_port* port = to_mikrobus_port(dev);
-    struct click_board_info* click;
-
-    int retval;
-
-    if (port->click == NULL) {
-        click = kzalloc(sizeof(*click), GFP_KERNEL);
-        if (!click) {
-            return -EINVAL;
-        }
-
-        INIT_LIST_HEAD(&click->manifest_descs);
-        INIT_LIST_HEAD(&click->devices);
-    }
-    else {
-        pr_err("port %d already has click registered, manifest size: %ld", port->id, count);
-        return -EINVAL;
-    }
-
-    retval = mikrobus_manifest_parse(click, (void*)buf, count);
-
-    if (!retval) {
-        pr_err("failed to parse manifest, size: %ld", count);
-        return -EINVAL;
-    }
-
-    retval = mikrobus_register_click(port, click);
-    if (retval) {
-        pr_err("failed to register click: %s", click->name);
-        return -EINVAL;
-    }
-
-    return count;
->>>>>>> 0a75f91f678b5ee885a4ff4da8fff30235a27f34
 }
 static DEVICE_ATTR_WO(new_device);
 
@@ -253,8 +217,6 @@ struct device_type mikrobus_port_type = {
 	.release = mikrobus_port_release,
 };
 EXPORT_SYMBOL_GPL(mikrobus_port_type);
-
-
 
 int mikrobus_port_pinctrl_select(struct mikrobus_port *port)
 {
@@ -470,8 +432,10 @@ static int mikrobus_device_register(struct mikrobus_port *port,
 			regulator.supply = kmemdup(dev->regulators[i].name, MIKROBUS_NAME_SIZE, GFP_KERNEL);
 			dev_info(&port->dev, " adding fixed regulator %llu uv, %s for %s\n",
 				*val, regulator.supply, regulator.dev_name);
+#if 0
 			regulator_register_always_on(0, dev->regulators[i].name, &regulator,
-				     1, *val);
+				1, *val);
+#endif
 		}
 	}
 	switch (dev->protocol) {
@@ -913,8 +877,4 @@ module_exit(mikrobus_exit);
 
 MODULE_AUTHOR("Vaishnav M A <vaishnav@beagleboard.org>");
 MODULE_DESCRIPTION("mikroBUS main module");
-<<<<<<< HEAD
 MODULE_LICENSE("GPL v2");
-=======
-MODULE_LICENSE("GPL");
->>>>>>> 0a75f91f678b5ee885a4ff4da8fff30235a27f34

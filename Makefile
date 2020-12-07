@@ -1,4 +1,4 @@
-mikrobus-y :=	mikrobus_core.o	mikrobus_manifest.o	
+mikrobus-y :=	mikrobus_core.o	mikrobus_manifest.o mikrobus_helper.o
 obj-m += mikrobus.o
 
 KDIR ?= /lib/modules/`uname -r`/build

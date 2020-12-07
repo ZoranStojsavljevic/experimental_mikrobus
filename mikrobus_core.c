@@ -39,6 +39,7 @@
 
 #include "mikrobus_core.h"
 #include "mikrobus_manifest.h"
+#include "mikrobus_helper.h"
 
 static DEFINE_MUTEX(core_lock);
 static DEFINE_IDR(mikrobus_port_idr);
@@ -737,6 +738,8 @@ static int mikrobus_port_probe(struct platform_device *pdev)
 	int retval;
 	u32 val;
 
+	printk(KERN_INFO "Entering mikrobus_port_probe() function!\n");
+
 	port = kzalloc(sizeof(*port), GFP_KERNEL);
 	if (!port)
 		return -ENOMEM;
@@ -798,6 +801,7 @@ static int mikrobus_port_probe(struct platform_device *pdev)
 		goto err_port;
 	}
 
+	printk(KERN_INFO "Entering mikrobus_port_register() function!\n");
 	retval = mikrobus_port_register(port);
 	if (retval) {
 		pr_err("port : can't register port [%d]\n", retval);
@@ -835,19 +839,27 @@ static struct platform_driver mikrobus_port_driver = {
 
 static int __init mikrobus_init(void)
 {
-	int retval;
+	int		retval;
+	struct kobject	*l_kobj;
 
 	retval = bus_register(&mikrobus_bus_type);
 	if (retval) {
 		pr_err("bus_register failed (%d)\n", retval);
 		return retval;
 	}
+	printk(KERN_INFO "mikrobus_bus_type: %s registered\n", mikrobus_bus_type.name);
+
 	mikrobus_port_compat_class = class_compat_register("mikrobus-port");
+
 	if (!mikrobus_port_compat_class) {
 		pr_err("class_compat register failed (%d)\n", retval);
 		retval = -ENOMEM;
 		goto class_err;
 	}
+	l_kobj = mikrobus_port_compat_class->kobj;
+
+	printk(KERN_INFO "class_compat: %s registered\n", l_kobj->name);
+
 	retval = of_alias_get_highest_id("mikrobus");
 	if (retval >= __mikrobus_first_dynamic_bus_num)
 		__mikrobus_first_dynamic_bus_num = retval + 1;
@@ -860,6 +872,7 @@ static int __init mikrobus_init(void)
 
 class_err:
 	bus_unregister(&mikrobus_bus_type);
+	printk(KERN_INFO "mikrobus_bus_type: %s unregistered due to CLASS_ERR\n", mikrobus_bus_type.name);
 	idr_destroy(&mikrobus_port_idr);
 	is_registered = false;
 	return retval;
@@ -870,6 +883,7 @@ static void __exit mikrobus_exit(void)
 {
 	platform_driver_unregister(&mikrobus_port_driver);
 	bus_unregister(&mikrobus_bus_type);
+	printk(KERN_INFO "mikrobus_bus_type: %s unregistered\n", mikrobus_bus_type.name);
 	class_compat_unregister(mikrobus_port_compat_class);
 	idr_destroy(&mikrobus_port_idr);
 }

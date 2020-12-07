@@ -6,8 +6,8 @@
  * Copyright 2020 Vaishnav M A, BeagleBoard.org Foundation.
  */
 
-#ifndef __MIKROBUS_H
-#define __MIKROBUS_H
+#ifndef __MIKROBUS_CORE_H
+#define __MIKROBUS_CORE_H
 
 #include <linux/kernel.h>
 #include <linux/device.h>
@@ -39,6 +39,10 @@
 #define MIKROBUS_PINCTRL_SPI		3
 
 #define MIKROBUS_PINCTRL_STATE_GPIO	"gpio"
+
+struct class_compat {
+	struct kobject *kobj;
+};
 
 extern struct bus_type mikrobus_bus_type;
 extern struct device_type mikrobus_port_type;
@@ -194,4 +198,4 @@ int mikrobus_port_register(struct mikrobus_port *port);
 int mikrobus_port_pinctrl_select(struct mikrobus_port *port);
 void mikrobus_port_delete(struct mikrobus_port *port);
 
-#endif /* __MIKROBUS_H */
+#endif /* __MIKROBUS_CORE_H */

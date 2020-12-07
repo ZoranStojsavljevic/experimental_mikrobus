@@ -16,6 +16,7 @@
 #include <linux/greybus/greybus_manifest.h>
 
 #include "mikrobus_manifest.h"
+#include "mikrobus_helper.h"
 
 struct manifest_desc {
 	struct list_head links;
@@ -142,8 +143,10 @@ static void mikrobus_state_get(struct addon_board_info *board)
 		pr_err("mikrobus descriptor not found");
 		return;
 	}
+	print_greybus_descriptor_mikrobus(mikrobus);
+
 	for (i = 0; i < MIKROBUS_PORT_PIN_COUNT; i++)
-		board->pin_state[i] =  mikrobus->pin_state[i];
+		board->pin_state[i] = mikrobus->pin_state[i];
 
 	found = false;
 	list_for_each_entry(descriptor, &board->manifest_descs, links) {

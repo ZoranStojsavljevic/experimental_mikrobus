@@ -143,7 +143,7 @@ static void mikrobus_state_get(struct addon_board_info *board)
 		pr_err("mikrobus descriptor not found");
 		return;
 	}
-	print_greybus_descriptor_mikrobus(mikrobus);
+	show_greybus_descriptor_mikrobus(mikrobus);
 
 	for (i = 0; i < MIKROBUS_PORT_PIN_COUNT; i++)
 		board->pin_state[i] = mikrobus->pin_state[i];
@@ -397,6 +397,8 @@ static int mikrobus_manifest_parse_devices(struct addon_board_info *board)
 	int retval;
 	int devcount = 0;
 
+	trace_mikrobus_manifest_parse_devices();
+
 	list_for_each_entry_safe(desc, next, &board->manifest_descs, links) {
 		if (desc->type != GREYBUS_TYPE_DEVICE)
 			continue;
@@ -404,6 +406,8 @@ static int mikrobus_manifest_parse_devices(struct addon_board_info *board)
 		retval = mikrobus_manifest_attach_device(board, desc_device);
 		devcount++;
 	}
+	show_greybus_descriptor_device(desc_device);
+
 	return devcount;
 }
 

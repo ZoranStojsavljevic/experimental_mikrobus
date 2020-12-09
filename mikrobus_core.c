@@ -62,6 +62,8 @@ static int mikrobus_port_scan_eeprom(struct mikrobus_port *port)
 	int retval;
 	char *buf;
 
+	trace_mikrobus_port_scan_eeprom();
+
 	retval = nvmem_device_read(port->eeprom, 0, 12, header);
 	if (retval != 12) {
 		dev_err(&port->dev, "failed to fetch manifest header %d\n",
@@ -97,6 +99,10 @@ static int mikrobus_port_scan_eeprom(struct mikrobus_port *port)
 		retval = -EINVAL;
 		goto err_free_board;
 	}
+
+	// Debug printing of the mikrobus_port structure
+	show_mikrobus_port(port);
+
 	retval = mikrobus_board_register(port, board);
 	if (retval) {
 		dev_err(&port->dev, "failed to register board %s\n",
@@ -115,6 +121,8 @@ err_free_buf:
 static ssize_t name_show(struct device *dev, struct device_attribute *attr,
 						 char *buf)
 {
+	printk(KERN_INFO "size_t name_show name: %s\n",to_mikrobus_port(dev)->name);
+	printk(KERN_INFO "to_mikrobus_port(dev)->name: %s\n", to_mikrobus_port(dev)->name);
 	return sprintf(buf, "%s\n", to_mikrobus_port(dev)->name);
 }
 static DEVICE_ATTR_RO(name);
@@ -388,6 +396,8 @@ static int mikrobus_device_register(struct mikrobus_port *port,
 	int i;
 	u64 *val;
 
+	trace_mikrobus_device_register();
+
 	dev_info(&port->dev, "registering device : %s", dev->drv_name);
 
 	if (dev->gpio_lookup) {
@@ -439,6 +449,10 @@ static int mikrobus_device_register(struct mikrobus_port *port,
 #endif
 		}
 	}
+
+	// Debug printing of the mikrobus_board_device structure
+	show_board_device_info(dev);
+
 	switch (dev->protocol) {
 	case GREYBUS_PROTOCOL_SPI:
 		spi = spi_alloc_device(port->spi_mstr);
@@ -610,6 +624,8 @@ int mikrobus_port_register(struct mikrobus_port *port)
 	int retval;
 	int id;
 
+	trace_mikrobus_port_register();
+
 	if (WARN_ON(!is_registered))
 		return -EAGAIN;
 
@@ -738,7 +754,7 @@ static int mikrobus_port_probe(struct platform_device *pdev)
 	int retval;
 	u32 val;
 
-	printk(KERN_INFO "Entering mikrobus_port_probe() function!\n");
+	trace_mikrobus_port_probe();
 
 	port = kzalloc(sizeof(*port), GFP_KERNEL);
 	if (!port)
@@ -801,7 +817,6 @@ static int mikrobus_port_probe(struct platform_device *pdev)
 		goto err_port;
 	}
 
-	printk(KERN_INFO "Entering mikrobus_port_register() function!\n");
 	retval = mikrobus_port_register(port);
 	if (retval) {
 		pr_err("port : can't register port [%d]\n", retval);

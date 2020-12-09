@@ -48,7 +48,7 @@ Note:- Attaching the mikrobus driver automatically probes an EEPROM on the I2C b
 
 See [manifesto tool](https://github.com/vaishnav98/manifesto/tree/mikrobus) for creating manifest blobs and instantiating clicks on the mikrobus port.
 
-### Miscelaneous
+### Miscellaneous
 
-	$ cp mikrobus.ko /lib/modules/5.8.18-bone23/kernel/drivers/misc/mikrobus
 	$ ls -al /lib/modules/5.8.18-bone23/kernel/drivers/misc/mikrobus
+	$ sudo cp mikrobus.ko /lib/modules/5.8.18-bone23/kernel/drivers/misc/mikrobus

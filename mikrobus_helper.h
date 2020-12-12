@@ -38,13 +38,13 @@ static inline void trace_mikrobus_manifest_parse_devices(void) {}
 
 #if MIKROBUS_DEBUG
 // mikrobus core data structures
-void show_board_device_info(struct board_device_info *pboard);
-void show_addon_board_info(struct addon_board_info *paddon);
-void show_mikrobus_port(struct mikrobus_port *pmikrobus);
+void show_board_device_info(struct board_device_info *);
+void show_addon_board_info(struct addon_board_info *);
+void show_mikrobus_port(struct mikrobus_port *);
 
 // mikrobus manifest data structures
-void show_greybus_descriptor_device(struct greybus_descriptor_device *pgbddev);
-void show_greybus_descriptor_mikrobus(struct greybus_descriptor_mikrobus *pgbdmbus);
+void show_greybus_descriptor_device(struct greybus_descriptor_device *);
+void show_greybus_descriptor_mikrobus(struct greybus_descriptor_mikrobus *);
 #else
 // mikrobus core dummy data structures
 static inline void show_board_device_info(struct board_device_info *p) {}

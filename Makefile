@@ -1,5 +1,6 @@
-mikrobus-y :=	mikrobus_core.o	mikrobus_manifest.o	
-obj-m += mikrobus.o
+obj-$(CONFIG_MIKROBUS) += mikrobus.o
+mikrobus-y := mikrobus_core.o mikrobus_manifest.o
+obj-$(CONFIG_MIKROBUS) += mikrobus_id.o
 
 KDIR ?= /lib/modules/`uname -r`/build
 

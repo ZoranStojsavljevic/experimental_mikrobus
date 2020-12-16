@@ -1,12 +1,8 @@
-### Newest Mikrobus driver release
+### Newest Mikrobus (branch mikrobusv3) driver release
 
-This driver comes from the following patch:
+The patch is added to the BB-kernel 5.8.18-bone24 release
 
-https://github.com/RobertCNelson/bb-kernel/commit/1b0087eb82e110b24893c83959ab375ed8b3f44b
-
-The patch is added to the BB-kernel 5.8.16-bone19 release
-
-The kernel used is the following: 5.18.8-bone23
+The kernel used is the following: 5.18.8-bone24
 
 https://github.com/RobertCNelson/bb-kernel
 
@@ -18,11 +14,12 @@ Execute the following to build the custom menuconfig:
 	host$ git checkout am33x-v5.8
 	host$ ./build_kernel.sh
 
-For the latest bb-kernel: 5.18.8-bone23
+For the latest bb-kernel: 5.18.8-bone24
 
-### IMPORTANT - WARNING: While building the kernel CONFIG_MIKROBUS option MUST be NOT set!
+### IMPORTANT: For MIKROBUS driver Out Of Tree the following should be set in .config:
 
-	host$ cat .config | grep MIKROBUS
-	# CONFIG_MIKROBUS is not set
+	CONFIG_MIKROBUS=m
+	CONFIG_W1=m
+	CONFIG_W1_MASTER_GPIO=m
 
-In order to be able to test Mikrobus Driver out-of-kernel-tree .
+In order to be able to test Mikrobus (mikrobusv3) Driver out-of-kernel-tree.

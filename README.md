@@ -1,48 +1,47 @@
-# mikroBUS
+### MikroBUS version3 (branch mikrobusv3) Out Of the kernel Tree setup
 
-mikroBUS kernel driver for instantiating mikroElektronika Click Boards from Manifest descriptors, See [eLinux/mikrobus](https://elinux.org/mikrobus) for more information.
+IMPORTANT: For MIKROBUS driver Out Of Tree the following should be set in .config:
 
-## Image Tested on :
-```
-debian@beaglebone:~/mikrobus$ cat /etc/dogtag 
-BeagleBoard.org Debian Buster IoT Image 2020-04-06
-debian@beaglebone:~/mikrobus$ uname -a
-Linux beaglebone 5.7.0-rc5-bone4 #1buster PREEMPT Mon May 11 16:23:42 UTC 2020 armv7l GNU/Linux
-```
+	CONFIG_MIKROBUS=m
+	CONFIG_W1=m
+	CONFIG_W1_MASTER_GPIO=m
 
-## Trying out :
+The following is the modules dynamic dependency loading order:
 
-```
-git clone https://github.com/vaishnav98/mikrobus.git
-cd mikrobus
-make all
-sudo insmod mikrobus.ko
-```
-## Status
+	w1-gpio -> mikrobus -> mikrobus_id
 
-* Basic Clicks and Clicks with IRQ Requirement working
-* Debug Interfaces for adding and Removing mikroBUS ports
-* Multiple Devices on a Click(in single manifest)
-* Manifest Parsing Logic complete
-* Fetching Manifest from EEPROM
+After that, the following is the loadable modules traces:
 
-## TODO
-* Devices under an i2c-gate
-* Devices with gpio_cs
+	debian@arm:~$ lsmod
+	Module                  Size  Used by
+	spidev                 20480  0
+	evdev                  20480  1
+	usb_f_acm              20480  2
+	u_serial               24576  3 usb_f_acm
+	usb_f_ncm              24576  2
+	usb_f_rndis            24576  4
+	u_ether                24576  2 usb_f_ncm,usb_f_rndis
+	libcomposite           49152  16 usb_f_acm,usb_f_ncm,usb_f_rndis
+	iptable_nat            16384  0
+	nf_nat                 28672  1 iptable_nat
+	nf_conntrack           98304  1 nf_nat
+	nf_defrag_ipv6         20480  1 nf_conntrack
+	nf_defrag_ipv4         16384  1 nf_conntrack
+	iptable_mangle         16384  0
+	iptable_filter         16384  0
+	-------
+	mikrobus_id            16384  0
+	mikrobus               20480  1 mikrobus_id
+	w1_gpio                16384  0
+	wire                   32768  3 mikrobus_id,w1_gpio,mikrobus
+	-------
+	ip_tables              24576  3 iptable_mangle,iptable_filter,iptable_nat
+	x_tables               24576  3 iptable_mangle,ip_tables,iptable_filter
 
-## Attaching PocketBeagle mikroBUS port 1 (Techlab mikroBUS port)(run as root)
-```
-printf "%b" '\x01\x00\x00\x59\x32\x17' > /sys/bus/mikrobus/add_port
-```
-The bytes in the byte array sequence are (in order):
-* i2c_adap_nr
-* spi_master_nr
-* serdev_ctlr_nr
-* rst_gpio_nr
-* pwm_gpio_nr
-* int_gpio_nr
+### Miscellaneous topic
 
-Note:- Attaching the mikrobus driver automatically probes an EEPROM on the I2C bus and if the probe is succesful, the driver tries to load a manifest from the eeprom and instantiate the click devices on the mikrobus port.
-## Instantiating a Click Device through a manifest blob
+	$ ls -al /lib/modules/$(uname -r)/kernel/drivers/misc/mikrobus
+	$ sudo rm /lib/modules/$(uname -r)/kernel/drivers/misc/mikrobus/*
+	$ sudo cp mikrobus.ko /lib/modules/$(uname -r)/kernel/drivers/misc/mikrobus
+	$ sudo cp mikrobus_id.ko /lib/modules/$(uname -r)/kernel/drivers/misc/mikrobus
 
-See [manifesto tool](https://github.com/vaishnav98/manifesto/tree/mikrobus) for creating manifest blobs and instantiating clicks on the mikrobus port.

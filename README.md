@@ -1,3 +1,21 @@
+### Newest Mikrobus (branch mikrobusv3) driver release
+
+The patch is added to the BB-kernel 5.8.18-bone24 release
+
+The kernel used is the following: 5.18.8-bone24
+
+https://github.com/RobertCNelson/bb-kernel
+
+Execute the following to build the custom menuconfig:
+
+	host$ git clone https://github.com/RobertCNelson/bb-kernel.git
+	host$ cd bb-kernel
+	host$ git remote show origin
+	host$ git checkout am33x-v5.8
+	host$ ./build_kernel.sh
+
+For the latest bb-kernel: 5.18.8-bone24
+
 ### MikroBUS version3 (branch mikrobusv3) Out Of the kernel Tree setup
 
 IMPORTANT: For MIKROBUS driver Out Of Tree the following should be set in .config:

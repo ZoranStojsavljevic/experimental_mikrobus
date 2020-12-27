@@ -1,5 +1,5 @@
-mikrobus-y :=	mikrobus_core.o	mikrobus_manifest.o mikrobus_helper.o
-obj-m += mikrobus.o
+mikrobus-y :=	mikrobus_core.o	mikrobus_manifest.o mikrobus_info.o
+obj-$(CONFIG_MIKROBUS) += mikrobus.o
 
 KDIR ?= /lib/modules/`uname -r`/build
 
@@ -8,5 +8,5 @@ all:
 clean:
 	make -C $(KDIR) M=$(PWD) clean
 install:
-	cp *.ko /lib/modules/$(shell uname -r)/kernel/drivers/misc/
-	depmod -a
+	sudo cp *.ko /lib/modules/$(shell uname -r)/kernel/drivers/misc/mikrobus
+	sudo depmod -a

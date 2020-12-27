@@ -39,7 +39,7 @@
 
 #include "mikrobus_core.h"
 #include "mikrobus_manifest.h"
-#include "mikrobus_helper.h"
+#include "mikrobus_info.h"
 
 static DEFINE_MUTEX(core_lock);
 static DEFINE_IDR(mikrobus_port_idr);
@@ -450,9 +450,6 @@ static int mikrobus_device_register(struct mikrobus_port *port,
 		}
 	}
 
-	// Debug printing of the mikrobus_board_device structure
-	show_board_device_info(dev);
-
 	switch (dev->protocol) {
 	case GREYBUS_PROTOCOL_SPI:
 		spi = spi_alloc_device(port->spi_mstr);
@@ -476,6 +473,7 @@ static int mikrobus_device_register(struct mikrobus_port *port,
 			}
 		}
 		dev->dev_client = (void *) spi_add_device(spi);
+		show_mikrobus_device_type(GREYBUS_PROTOCOL_SPI, (void *)spi);
 		break;
 	case GREYBUS_PROTOCOL_I2C:
 		i2c = kzalloc(sizeof(*i2c), GFP_KERNEL);
@@ -488,6 +486,7 @@ static int mikrobus_device_register(struct mikrobus_port *port,
 			i2c->properties = dev->properties;
 		i2c->addr = dev->reg;
 		dev->dev_client = (void *) i2c_new_client_device(port->i2c_adap, i2c);
+		show_mikrobus_device_type(GREYBUS_PROTOCOL_I2C, (void *)i2c);
 		break;
 	case GREYBUS_PROTOCOL_RAW:
 		pdev = platform_device_alloc(dev->drv_name, 0);
@@ -497,6 +496,7 @@ static int mikrobus_device_register(struct mikrobus_port *port,
 			platform_device_add_properties(pdev, dev->properties);
 		dev->dev_client = pdev;
 		platform_device_add(dev->dev_client);
+		show_mikrobus_device_type(GREYBUS_PROTOCOL_RAW, (void *)pdev);
 		break;
 	case GREYBUS_PROTOCOL_UART:
 		serdev = serdev_device_alloc(port->ser_ctrl);
@@ -507,11 +507,17 @@ static int mikrobus_device_register(struct mikrobus_port *port,
 			device_add_properties(&serdev->dev, dev->properties);
 		dev->dev_client = serdev;
 		serdev_device_add(serdev);
+		show_mikrobus_device_type(GREYBUS_PROTOCOL_UART, (void *)serdev);
 		break;
 	break;
 	default:
 	return -EINVAL;
 	}
+
+	// mikrobus_device structures debug printing
+	// show_mikrobus_device(i2c, spi, serdev, pdev, devname);
+	// show_device_name(devname);
+
 	return 0;
 }
 
@@ -563,8 +569,11 @@ int mikrobus_board_register(struct mikrobus_port *port,	struct addon_board_info 
 									i, board->pin_state[i]);
 		}
 	}
-	list_for_each_entry_safe(devinfo, next, &board->devices, links)
+	list_for_each_entry_safe(devinfo, next, &board->devices, links) {
+		// Debug printing of the mikrobus_board_device structure
 		mikrobus_device_register(port, devinfo, board->name);
+		show_board_device_info(devinfo);
+	}
 	port->board = board;
 	return 0;
 }

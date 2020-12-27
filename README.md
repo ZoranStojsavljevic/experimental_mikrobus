@@ -1,4 +1,4 @@
-### MikroBUS
+## MikroBUS (mikrobusv2 branch)
 
 mikroBUS kernel driver for instantiating mikroElektronika Click Boards from Manifest descriptors, See [eLinux/mikrobus](https://elinux.org/mikrobus) for more information.
 
@@ -48,7 +48,41 @@ Note:- Attaching the mikrobus driver automatically probes an EEPROM on the I2C b
 
 See [manifesto tool](https://github.com/vaishnav98/manifesto/tree/mikrobus) for creating manifest blobs and instantiating clicks on the mikrobus port.
 
-### Miscellaneous
+### Newest MikroBUS driver release (mikrobusv2 branch)
 
-	$ ls -al /lib/modules/5.8.18-bone23/kernel/drivers/misc/mikrobus
-	$ sudo cp mikrobus.ko /lib/modules/5.8.18-bone23/kernel/drivers/misc/mikrobus
+This driver comes from the following patch:
+
+https://github.com/RobertCNelson/bb-kernel/commit/1b0087eb82e110b24893c83959ab375ed8b3f44b
+
+The patch is added to the BB-kernel 5.8.16-bone19 release
+
+The kernel must be at least the same version, or later.
+
+https://github.com/RobertCNelson/bb-kernel
+
+Execute the following to build the custom menuconfig:
+
+	$ git clone https://github.com/RobertCNelson/bb-kernel.git
+	$ cd bb-kernel
+	$ git remote show origin
+	$ git checkout am33x-v5.8
+	$ ./build_kernel.sh
+
+For the latest 5.8.x bb-kernel.
+
+### IMPORTANT - WARNING: While building the kernel CONFIG_MIKROBUS option MUST be set to <m>!
+
+	$ cat .config | grep MIKROBUS
+	CONFIG_MIKROBUS=m
+
+In order to be able to test Mikrobus Driver out-of-kernel-tree.
+
+### Location of modules in the rootfs to be loaded automatically
+
+	$ ls -al /lib/modules/$(uname -r)/kernel/drivers/misc/mikrobus
+	$ sudo cp mikrobus.ko /lib/modules/$(uname -r)/kernel/drivers/misc/mikrobus
+
+## MikroBUS Debug/Test framework (mikrobusv2-debug branch)
+
+MikroBUS Debug/Test framework (mikrobusv2-debug branch) is the branch introduced for the internal
+MikroBus Version 2 testing purposes.

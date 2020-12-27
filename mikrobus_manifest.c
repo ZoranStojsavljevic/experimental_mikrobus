@@ -16,7 +16,7 @@
 #include <linux/greybus/greybus_manifest.h>
 
 #include "mikrobus_manifest.h"
-#include "mikrobus_helper.h"
+#include "mikrobus_info.h"
 
 struct manifest_desc {
 	struct list_head links;

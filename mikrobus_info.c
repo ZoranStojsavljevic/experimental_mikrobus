@@ -54,6 +54,9 @@ const char *const greybus_protocol_string[] =
 //	GREYBUS_PROTOCOL_VENDOR		= 0xff,
 };
 
+#define GREYBUS_PROTOCOL_RAW    0xfe
+#define GREYBUS_PROTOCOL_VENDOR 0xff
+
 const char *const mikrobus_pin_string[] =
 {
 	"MIKROBUS_PIN_PWM",
@@ -231,7 +234,7 @@ void show_mikrobus_device_type(int protocol, void *p)
 	struct serdev_device *serdev;
 	struct platform_device *pdev;
 
-	printk(KERN_INFO "--- show_mikrobus_device() ---\n");
+	printk(KERN_INFO "--- show_mikrobus_device_type() ---\n");
 
 	switch (protocol) {
 		case GREYBUS_PROTOCOL_I2C:
@@ -275,7 +278,7 @@ void show_mikrobus_device_type(int protocol, void *p)
 			printk(KERN_INFO "mikrobus_device: UNKNOWN DEVICE TYPE!\n");
 			break;
 	}
-	printk(KERN_INFO "--- end show_mikrobus_device() ---\n");
+	printk(KERN_INFO "--- end show_mikrobus_device_type() ---\n");
 }
 
 void show_device_name(char *devname) {

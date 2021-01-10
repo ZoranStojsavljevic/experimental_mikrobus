@@ -1,5 +1,6 @@
 mikrobus-y :=	mikrobus_core.o	mikrobus_manifest.o mikrobus_info.o
 obj-$(CONFIG_MIKROBUS) += mikrobus.o
+## obj-$(CONFIG_MIKROBUS) += mikrobus_test.o
 
 KDIR ?= /lib/modules/`uname -r`/build
 

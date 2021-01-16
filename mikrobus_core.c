@@ -121,8 +121,8 @@ err_free_buf:
 static ssize_t name_show(struct device *dev, struct device_attribute *attr,
 						 char *buf)
 {
-	printk(KERN_INFO "size_t name_show name: %s\n",to_mikrobus_port(dev)->name);
-	printk(KERN_INFO "to_mikrobus_port(dev)->name: %s\n", to_mikrobus_port(dev)->name);
+	pr_info("size_t name_show name: %s\n",to_mikrobus_port(dev)->name);
+	pr_info("to_mikrobus_port(dev)->name: %s\n", to_mikrobus_port(dev)->name);
 	return sprintf(buf, "%s\n", to_mikrobus_port(dev)->name);
 }
 static DEVICE_ATTR_RO(name);
@@ -494,7 +494,7 @@ static int mikrobus_device_register(struct mikrobus_port *port,
 			dev_err(&port->i2c_adap->dev, "can't add %s\n", dev_name(&port->i2c_adap->dev));
 			return -EINVAL;
 		}
-		show_mikrobus_device_type(GREYBUS_PROTOCOL_I2C, (dev->dev_client));
+		show_mikrobus_device_type(GREYBUS_PROTOCOL_I2C, dev->dev_client);
 		break;
 	case GREYBUS_PROTOCOL_RAW:
 		pdev = platform_device_alloc(dev->drv_name, 0);
@@ -885,7 +885,7 @@ static int __init mikrobus_init(void)
 		pr_err("bus_register failed (%d)\n", retval);
 		return retval;
 	}
-	printk(KERN_INFO "mikrobus_bus_type: %s registered\n", mikrobus_bus_type.name);
+	pr_info("mikrobus_bus_type: %s registered\n", mikrobus_bus_type.name);
 
 	mikrobus_port_compat_class = class_compat_register("mikrobus-port");
 
@@ -896,7 +896,7 @@ static int __init mikrobus_init(void)
 	}
 	l_kobj = mikrobus_port_compat_class->kobj;
 
-	printk(KERN_INFO "class_compat: %s registered\n", l_kobj->name);
+	pr_info("class_compat: %s registered\n", l_kobj->name);
 
 	retval = of_alias_get_highest_id("mikrobus");
 	if (retval >= __mikrobus_first_dynamic_bus_num)
@@ -910,7 +910,7 @@ static int __init mikrobus_init(void)
 
 class_err:
 	bus_unregister(&mikrobus_bus_type);
-	printk(KERN_INFO "mikrobus_bus_type: %s unregistered due to CLASS_ERR\n", mikrobus_bus_type.name);
+	pr_info("mikrobus_bus_type: %s unregistered due to CLASS_ERR\n", mikrobus_bus_type.name);
 	idr_destroy(&mikrobus_port_idr);
 	is_registered = false;
 	return retval;
@@ -921,7 +921,7 @@ static void __exit mikrobus_exit(void)
 {
 	platform_driver_unregister(&mikrobus_port_driver);
 	bus_unregister(&mikrobus_bus_type);
-	printk(KERN_INFO "mikrobus_bus_type: %s unregistered\n", mikrobus_bus_type.name);
+	pr_info("mikrobus_bus_type: %s unregistered\n", mikrobus_bus_type.name);
 	class_compat_unregister(mikrobus_port_compat_class);
 	idr_destroy(&mikrobus_port_idr);
 }

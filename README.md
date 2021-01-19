@@ -1,40 +1,35 @@
-## MikroBUS (mikrobusv2 branch)
+## MikroBUS (mikrobusv2-debug branch)
 
-mikroBUS kernel driver for instantiating mikroElektronika Click Boards from Manifest descriptors, See [eLinux/mikrobus](https://elinux.org/mikrobus) for more information.
-
-### Image Tested on:
-```
-debian@beaglebone:~/mikrobus$ cat /etc/dogtag 
-BeagleBoard.org Debian Buster IoT Image 2020-04-06
-debian@beaglebone:~/mikrobus$ uname -a
-Linux beaglebone 5.7.0-rc5-bone4 #1buster PREEMPT Mon May 11 16:23:42 UTC 2020 armv7l GNU/Linux
-```
+MikroBUS debug kernel driver for instantiating mikroElektronika Click Boards from Manifest descriptors, See [eLinux/mikrobus](https://elinux.org/mikrobus) for more information.
 
 ### Trying out:
 
-```
-git clone https://github.com/vaishnav98/mikrobus.git
-cd mikrobus
-make all
-sudo insmod mikrobus.ko
-```
+	git clone https://github.com/ZoranStojsavljevic/mikrobus.git
+	cd mikrobus
+	git checkout mikrobusv2-debug
+	git branch
+	make all
+	sudo insmod mikrobus.ko
+
 ### Status
 
 * Basic Clicks and Clicks with IRQ Requirement working
 * Debug Interfaces for adding and Removing mikroBUS ports
-* Multiple Devices on a Click(in single manifest)
+* Multiple Devices on a Click (in single manifest)
 * Manifest Parsing Logic complete
 * Fetching Manifest from EEPROM
 
 ### TODO
+
 * Devices under an i2c-gate
 * Devices with gpio_cs
 
 ### Attaching PocketBeagle MikroBUS port 1 (Techlab mikroBUS port)(run as root)
-```
-printf "%b" '\x01\x00\x00\x59\x32\x17' > /sys/bus/mikrobus/add_port
-```
+
+	printf "%b" '\x01\x00\x00\x59\x32\x17' > /sys/bus/mikrobus/add_port
+
 The bytes in the byte array sequence are (in order):
+
 * i2c_adap_nr
 * spi_master_nr
 * serdev_ctlr_nr
@@ -48,7 +43,7 @@ Note:- Attaching the mikrobus driver automatically probes an EEPROM on the I2C b
 
 See [manifesto tool](https://github.com/vaishnav98/manifesto/tree/mikrobus) for creating manifest blobs and instantiating clicks on the mikrobus port.
 
-### Newest MikroBUS driver release (mikrobusv2 branch)
+### Newest MikroBUS driver release (mikrobusv2-debug)
 
 This driver comes from the following patch:
 
@@ -66,9 +61,10 @@ Execute the following to build the custom menuconfig:
 	$ cd bb-kernel
 	$ git remote show origin
 	$ git checkout am33x-v5.8
+	$ git branch
 	$ ./build_kernel.sh
 
-For the latest 5.8.x bb-kernel.
+For the latest working 5.8.x bb-kernel.
 
 ### IMPORTANT - WARNING: While building the kernel CONFIG_MIKROBUS option MUST be set to <m>!
 
@@ -81,8 +77,3 @@ In order to be able to test Mikrobus Driver out-of-kernel-tree.
 
 	$ ls -al /lib/modules/$(uname -r)/kernel/drivers/misc/mikrobus
 	$ sudo cp mikrobus.ko /lib/modules/$(uname -r)/kernel/drivers/misc/mikrobus
-
-## MikroBUS Debug/Test framework (mikrobusv2-debug branch)
-
-MikroBUS Debug/Test framework (mikrobusv2-debug branch) is the branch introduced for the internal
-MikroBus Version 2 testing purposes.

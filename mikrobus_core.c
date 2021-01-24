@@ -757,7 +757,8 @@ void mikrobus_port_delete(struct mikrobus_port *port)
 		pr_err("port [%s] not registered", port->name);
 		return;
 	}
-	if (port->board) {
+
+	if (!port->board) {
 		dev_err(&port->dev, "attempting to delete port with registered boards, port [%s]\n",
 									port->name);
 		return;
@@ -767,6 +768,8 @@ void mikrobus_port_delete(struct mikrobus_port *port)
 		nvmem_device_put(port->eeprom);
 		platform_device_unregister(port->w1_gpio);
 	}
+
+	mikrobus_board_unregister(port, port->board);
 
 	class_compat_remove_link(mikrobus_port_compat_class, &port->dev,
 							port->dev.parent);
@@ -897,6 +900,7 @@ static int mikrobus_port_remove(struct platform_device *pdev)
 {
 	struct mikrobus_port	*port = platform_get_drvdata(pdev);
 
+	pr_info("removing port mikrobus-%d ", port->id);
 	mikrobus_port_delete(port);
 	return 0;
 }

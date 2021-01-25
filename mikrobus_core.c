@@ -558,7 +558,11 @@ static int mikrobus_device_register(struct mikrobus_port *port,
 				clk_register_fixed_rate(&spi->dev, dev->clocks[i].name, devname, 0, *val);
 			}
 		}
-		dev->dev_client = (void *) spi_add_device(spi);
+		if (spi_add_device(spi)) {
+			dev_err(&spi->dev, "can't add %s\n", dev_name(&spi->dev));
+			return -EINVAL;
+		}
+		dev->dev_client = (void *)spi;
 		break;
 	case GREYBUS_PROTOCOL_I2C:
 		i2c = kzalloc(sizeof(*i2c), GFP_KERNEL);
@@ -571,6 +575,10 @@ static int mikrobus_device_register(struct mikrobus_port *port,
 			i2c->properties = dev->properties;
 		i2c->addr = dev->reg;
 		dev->dev_client = (void *) i2c_new_client_device(port->i2c_adap, i2c);
+		if (NULL == dev->dev_client) {
+			dev_err(&port->i2c_adap->dev, "can't add %s\n", dev_name(&port->i2c_adap->dev));
+			return -EINVAL;
+		}
 		break;
 	case GREYBUS_PROTOCOL_RAW:
 		pdev = platform_device_alloc(dev->drv_name, 0);
@@ -578,8 +586,11 @@ static int mikrobus_device_register(struct mikrobus_port *port,
 			return -ENOMEM;
 		if (dev->properties)
 			platform_device_add_properties(pdev, dev->properties);
-		dev->dev_client = pdev;
-		platform_device_add(dev->dev_client);
+		if (platform_device_add(pdev)) {
+			dev_err(&pdev->dev, "can't add %s\n", dev_name(&pdev->dev));
+			return -EINVAL;
+		}
+		dev->dev_client = (void *)pdev;
 		break;
 	case GREYBUS_PROTOCOL_UART:
 		serdev = serdev_device_alloc(port->ser_ctrl);
@@ -588,12 +599,14 @@ static int mikrobus_device_register(struct mikrobus_port *port,
 		strncpy(serdev->modalias, dev->drv_name, sizeof(serdev->modalias) - 1);
 		if (dev->properties)
 			device_add_properties(&serdev->dev, dev->properties);
-		dev->dev_client = serdev;
-		serdev_device_add(serdev);
+		if (serdev_device_add(serdev)) {
+			dev_err(&serdev->dev, "can't add %s\n", dev_name(&serdev->dev));
+			return -EINVAL;
+		}
+		dev->dev_client = (void *)serdev;
 		break;
-	break;
 	default:
-	return -EINVAL;
+		return -EINVAL;
 	}
 	return 0;
 }

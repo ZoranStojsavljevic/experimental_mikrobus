@@ -3,7 +3,8 @@
  * mikroBUS driver for instantiating add-on
  * board devices with an identifier EEPROM
  *
- * Copyright 2020 Vaishnav M A, BeagleBoard.org Foundation.
+ * Copyright 2021 Vaishnav M A, BeagleBoard.org Foundation.
+ * Copyright 2021 Zoran Stojsavljevic, BeagleBoard.org Foundation.
  */
 
 #define pr_fmt(fmt) "mikrobus:%s: " fmt, __func__
@@ -693,7 +694,7 @@ static int mikrobus_port_id_eeprom_probe(struct mikrobus_port *port)
 	int retval;
 	int i;
 
-	mikrobus_id_eeprom_w1_device = kzalloc(sizeof(*mikrobus_id_eeprom_w1_device), GFP_KERNEL);
+	mikrobus_id_eeprom_w1_device = platform_device_alloc(drvname, port->id);
 	if (!mikrobus_id_eeprom_w1_device)
 		return -ENOMEM;
 
@@ -728,6 +729,7 @@ static int mikrobus_port_id_eeprom_probe(struct mikrobus_port *port)
 	snprintf(devname, sizeof(devname), "%s.%u",
 				mikrobus_id_eeprom_w1_device->name,
 				port->id);
+	pr_info("devname is %s", devname);
 	mikrobus_id_eeprom_w1_device->id = port->id;
 	lookup->dev_id = kmemdup(devname, MIKROBUS_NAME_SIZE, GFP_KERNEL);
 	lookup->table[0].key = mikrobus_gpio_chip_name_get(port,
@@ -736,7 +738,14 @@ static int mikrobus_port_id_eeprom_probe(struct mikrobus_port *port)
 	lookup->table[0].chip_hwnum = mikrobus_gpio_hwnum_get(port,
 						MIKROBUS_PIN_CS);
 	gpiod_add_lookup_table(lookup);
-	platform_device_register(mikrobus_id_eeprom_w1_device);
+
+	// platform_device_register(mikrobus_id_eeprom_w1_device);
+	if (platform_device_add(mikrobus_id_eeprom_w1_device)) {
+		dev_err(&mikrobus_id_eeprom_w1_device->dev, "can't add %s\n",
+			dev_name(&mikrobus_id_eeprom_w1_device->dev));
+		return -EINVAL;
+	}
+
 	port->w1_gpio = mikrobus_id_eeprom_w1_device;
 	bm = (struct w1_bus_master *) platform_get_drvdata(mikrobus_id_eeprom_w1_device);
 	if(bm) {
@@ -824,11 +833,15 @@ void mikrobus_port_delete(struct mikrobus_port *port)
 		return;
 	}
 
-	if (port->eeprom) {
+	if (port->eeprom)
 		nvmem_device_put(port->eeprom);
+
+	if (port->w1_gpio) {
+		pr_info("unregistering platform device w1_gpio");
 		platform_device_unregister(port->w1_gpio);
 	}
 
+	pr_info("unregistering board %s", port->board->name);
 	mikrobus_board_unregister(port, port->board);
 
 	class_compat_remove_link(mikrobus_port_compat_class, &port->dev,

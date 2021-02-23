@@ -46,7 +46,6 @@
 static DEFINE_MUTEX(core_lock);
 static DEFINE_IDR(mikrobus_port_idr);
 static struct class_compat *mikrobus_port_compat_class;
-int	__mikrobus_first_dynamic_bus_num;
 static bool is_registered;
 static int mikrobus_port_id_eeprom_probe(struct mikrobus_port *port);
 
@@ -688,7 +687,7 @@ static int mikrobus_port_id_eeprom_probe(struct mikrobus_port *port)
 	struct w1_bus_master *bm;
 	struct gpiod_lookup_table *lookup;
 	struct platform_device *mikrobus_id_eeprom_w1_device;
-	static struct w1_gpio_platform_data *mikrobus_id_eeprom_w1_pdata;
+	struct w1_gpio_platform_data *mikrobus_id_eeprom_w1_pdata;
 	char devname[MIKROBUS_NAME_SIZE];
 	char drvname[MIKROBUS_NAME_SIZE] = "w1-gpio";
 	int retval;
@@ -734,9 +733,11 @@ static int mikrobus_port_id_eeprom_probe(struct mikrobus_port *port)
 	lookup->dev_id = kmemdup(devname, MIKROBUS_NAME_SIZE, GFP_KERNEL);
 	lookup->table[0].key = mikrobus_gpio_chip_name_get(port,
 						MIKROBUS_PIN_CS);
+	pr_info("devname %s key is %s", devname, lookup->table[0].key);
 	lookup->table[0].flags = GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN;
 	lookup->table[0].chip_hwnum = mikrobus_gpio_hwnum_get(port,
 						MIKROBUS_PIN_CS);
+	pr_info("devname %s chip_hwnum is %d", devname, lookup->table[0].chip_hwnum);
 	gpiod_add_lookup_table(lookup);
 
 	// platform_device_register(mikrobus_id_eeprom_w1_device);
@@ -762,33 +763,41 @@ static int mikrobus_port_id_eeprom_probe(struct mikrobus_port *port)
 
 int mikrobus_port_register(struct mikrobus_port *port)
 {
-	struct device *dev = &port->dev;
-	int retval;
-	int id;
+	struct device	*dev = &port->dev;
+	int		id, first_dynamic;
+	int		retval;
 
 	if (WARN_ON(!is_registered))
 		return -EAGAIN;
 
 	if (dev->of_node) {
 		id = of_alias_get_id(dev->of_node, "mikrobus");
+		pr_info("of alias get id %d ", id);
 		if (id >= 0) {
 			port->id = id;
 			mutex_lock(&core_lock);
-			id = idr_alloc(&mikrobus_port_idr, port, port->id, port->id + 1,
-										GFP_KERNEL);
+			id = idr_alloc(&mikrobus_port_idr, port, port->id,
+					port->id + 1, GFP_KERNEL);
 			mutex_unlock(&core_lock);
 			if (WARN(id < 0, "couldn't get idr"))
 				return id == -ENOSPC ? -EBUSY : id;
 		}
-	} else {
+	}
+	else {
+		first_dynamic = of_alias_get_highest_id("mikrobus");
+		pr_info("first_dynamic %d ", first_dynamic);
+		0 > first_dynamic ? first_dynamic = 0 : first_dynamic++;
+
 		mutex_lock(&core_lock);
-		id = idr_alloc(&mikrobus_port_idr, port, __mikrobus_first_dynamic_bus_num, 0,
-											GFP_KERNEL);
+		id = idr_alloc(&mikrobus_port_idr, port, first_dynamic,
+				0, GFP_KERNEL);
 		mutex_unlock(&core_lock);
+
 		if (id < 0)
 			return id;
 		port->id = id;
 	}
+
 	port->dev.bus = &mikrobus_bus_type;
 	port->dev.type = &mikrobus_port_type;
 	strncpy(port->name, "mikrobus-port", sizeof(port->name) - 1);
@@ -838,6 +847,7 @@ void mikrobus_port_delete(struct mikrobus_port *port)
 
 	if (port->w1_gpio) {
 		pr_info("unregistering platform device w1_gpio");
+		kfree(port->w1_gpio->dev.platform_data);
 		platform_device_unregister(port->w1_gpio);
 	}
 
@@ -847,10 +857,14 @@ void mikrobus_port_delete(struct mikrobus_port *port)
 	class_compat_remove_link(mikrobus_port_compat_class, &port->dev,
 							port->dev.parent);
 	device_unregister(&port->dev);
+
+	/* free bus id */
 	mutex_lock(&core_lock);
 	idr_remove(&mikrobus_port_idr, port->id);
+	idr_destroy(&mikrobus_port_idr);
 	mutex_unlock(&core_lock);
-	memset(&port->dev, 0, sizeof(port->dev));
+	// memset(&port->dev, 0, sizeof(port->dev));
+	kfree(port);
 }
 EXPORT_SYMBOL_GPL(mikrobus_port_delete);
 
@@ -1002,15 +1016,13 @@ static int __init mikrobus_init(void)
 		pr_err("bus_register failed (%d)\n", retval);
 		return retval;
 	}
+
 	mikrobus_port_compat_class = class_compat_register("mikrobus-port");
 	if (!mikrobus_port_compat_class) {
 		pr_err("class_compat register failed (%d)\n", retval);
 		retval = -ENOMEM;
 		goto class_err;
 	}
-	retval = of_alias_get_highest_id("mikrobus");
-	if (retval >= __mikrobus_first_dynamic_bus_num)
-		__mikrobus_first_dynamic_bus_num = retval + 1;
 
 	is_registered = true;
 	retval = platform_driver_register(&mikrobus_port_driver);
@@ -1029,9 +1041,8 @@ subsys_initcall(mikrobus_init);
 static void __exit mikrobus_exit(void)
 {
 	platform_driver_unregister(&mikrobus_port_driver);
-	bus_unregister(&mikrobus_bus_type);
 	class_compat_unregister(mikrobus_port_compat_class);
-	idr_destroy(&mikrobus_port_idr);
+	bus_unregister(&mikrobus_bus_type);
 }
 module_exit(mikrobus_exit);
 
